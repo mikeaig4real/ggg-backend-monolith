@@ -17,6 +17,7 @@ import { PresenceService } from '@app/common/redis';
 import { v4 as uuidv4 } from 'uuid';
 import { GameManagerService } from '@modules/game/modules/game-manager/game-manager.service';
 import { UsersService } from '@modules/users/users.service';
+import { WalletService } from '@modules/wallet/wallet.service';
 
 @Injectable()
 export class LobbyService {
@@ -27,6 +28,7 @@ export class LobbyService {
     private readonly gameManagerService: GameManagerService,
     private readonly usersService: UsersService,
     private readonly presenceService: PresenceService,
+    private readonly walletService: WalletService,
   ) {}
 
   async createLobby(
@@ -67,6 +69,12 @@ export class LobbyService {
     }
 
     const lobbyData = JSON.parse(dataStr);
+
+    // Check Balance for joining user
+    const { balance } = await this.walletService.getBalance(userId);
+    if (Number(balance) < lobbyData.betAmount) {
+      throw new BadRequestException('Insufficient funds to join lobby');
+    }
 
     // Host Online Check
     const isHostOnline = await this.presenceService.isOnline(lobbyData.hostId);

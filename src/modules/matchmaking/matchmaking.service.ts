@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { MatchQueueService } from './modules/queue/match-queue.service';
 import { LobbyService } from './modules/lobby/lobby.service';
 import { BotService } from './modules/bot/bot.service';
+import { WalletService } from '@modules/wallet/wallet.service';
 import {
   validateWith,
   GameTypeSchema,
@@ -17,6 +18,7 @@ export class MatchmakingService {
     private readonly matchQueueService: MatchQueueService,
     private readonly lobbyService: LobbyService,
     private readonly botService: BotService,
+    private readonly walletService: WalletService,
   ) {}
 
   async joinRandomQueue(
@@ -31,6 +33,12 @@ export class MatchmakingService {
     validateWith(GameTypeSchema, gameType);
     validateWith(TierSchema, tier);
     validateWith(PositiveAmountSchema, betAmount);
+
+    const { balance } = await this.walletService.getBalance(userId);
+    if (Number(balance) < betAmount) {
+      throw new BadRequestException('Insufficient funds to join queue');
+    }
+
     return this.matchQueueService.addToQueue(userId, gameType, tier, betAmount);
   }
 
@@ -40,6 +48,12 @@ export class MatchmakingService {
     );
     validateWith(GameTypeSchema, gameType);
     validateWith(PositiveAmountSchema, betAmount);
+
+    const { balance } = await this.walletService.getBalance(userId);
+    if (Number(balance) < betAmount) {
+      throw new BadRequestException('Insufficient funds to create lobby');
+    }
+
     return this.lobbyService.createLobby(userId, gameType, betAmount);
   }
 
@@ -56,6 +70,12 @@ export class MatchmakingService {
     );
     validateWith(GameTypeSchema, gameType);
     validateWith(PositiveAmountSchema, betAmount);
+
+    const { balance } = await this.walletService.getBalance(userId);
+    if (Number(balance) < betAmount) {
+      throw new BadRequestException('Insufficient funds to play with bot');
+    }
+
     return this.botService.createBotMatch(userId, gameType, betAmount);
   }
 

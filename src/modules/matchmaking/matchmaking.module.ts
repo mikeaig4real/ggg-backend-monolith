@@ -15,6 +15,7 @@ import { LobbyModule } from './modules/lobby/lobby.module';
 import { BotModule } from './modules/bot/bot.module';
 import { GameModule } from '@modules/game/game.module';
 import { UsersModule } from '@modules/users/users.module';
+import { WalletModule } from '@modules/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UsersModule } from '@modules/users/users.module';
     LobbyModule,
     BotModule,
     GameModule,
+    WalletModule,
     forwardRef(() => UsersModule),
   ],
   controllers: [MatchmakingController],
